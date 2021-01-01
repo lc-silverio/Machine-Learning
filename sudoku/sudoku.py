@@ -17,7 +17,7 @@ def printBoard(board):
     print("\n")
 
 
-# lê o input.txt
+# lê o input.txt e atribui o que l
 # a formatação do ficheiro txt é importante
 def readFile(txt_file):
     file_buf = open(txt_file, "r")  # opens file
@@ -38,11 +38,8 @@ def initializeNeighbours():
             neighbours[key] = []
 
 
-# esta funcao inicializa uma lista de listas, chamada board
-# board contem uma lista de regioes
-# uma regiao contem 9 celulas
-# basicamente para tratarmos as restricoes a nivel da regiao
-def applyDomain(board):
+# esta funcao arranja o board novo, mas com as restrições já tratadas
+def makeNewBoard(board):
     for i in range(9):
         for j in range(9):
             board[i][j] = list(regioes[i][j])[0]
@@ -137,7 +134,7 @@ def solve(board):
     initializeNeighbours()
     queue = initializeQueue()
     AC3(queue)
-    applyDomain(board)
+    makeNewBoard(board)
     printBoard(board)
 
 
