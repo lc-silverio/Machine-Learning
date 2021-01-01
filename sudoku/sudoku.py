@@ -1,13 +1,15 @@
-board = [[0 for i in range(9)] for j in range(9)]
-domains = [[{1, 2, 3, 4, 5, 6, 7, 8, 9} for i in range(9)] for j in range(9)]
-neighbours = {}
+board = [[0 for i in range(9)] for j in range(9)]  # o board contém 9 regiões
+regioes = [[{1, 2, 3, 4, 5, 6, 7, 8, 9} for i in range(9)] for j in
+           range(9)]  # as regiões contém 9 células que vão de 1 a 9
+neighbours = {}  # vai ser inicializado depois, cada célula vai ter uma lista de neighbours (referir a: initializeNeighbours)
 
 
+# é obvio o que isto faz...
 def printBoard(board):
-    for ri, row in enumerate(board):
+    for ri, linha in enumerate(board):
         if ri > 0 and ri % 3 == 0:
             print("\n", end="")
-        for rc, num in enumerate(row):
+        for rc, num in enumerate(linha):
             if rc > 0 and (rc % 3) == 0:
                 print('\t', end='')
             print(num, end=' ')
@@ -15,6 +17,8 @@ def printBoard(board):
     print("\n")
 
 
+# lê o input.txt
+# a formatação do ficheiro txt é importante
 def readFile(txt_file):
     file_buf = open(txt_file, "r")  # opens file
     for i in range(9):
@@ -23,66 +27,72 @@ def readFile(txt_file):
             num = line[j]
             if num != 0:
                 board[i][j] = line[j]
-                domains[i][j] = {line[j]}
+                regioes[i][j] = {line[j]}
 
 
-# inserts all keys. values are lists
+# esta função inicializa listas para ser preenchidas com todos os neighbours de cada celula
 def initializeNeighbours():
-    for row in range(9):
-        for col in range(9):
-            key = (row, col)
+    for linha in range(9):
+        for coluna in range(9):
+            key = (linha, coluna)
             neighbours[key] = []
 
 
+# esta funcao inicializa uma lista de listas, chamada board
+# board contem uma lista de regioes
+# uma regiao contem 9 celulas
+# basicamente para tratarmos as restricoes a nivel da regiao
 def applyDomain(board):
     for i in range(9):
         for j in range(9):
-            board[i][j] = list(domains[i][j])[0]
+            board[i][j] = list(regioes[i][j])[0]
 
 
-# put all constraints in a queue
+# inicia a fila com as restrições
+# basicamente a parte mais complexa da script...
 def initializeQueue():
     queue = []
-    # all horizontal
-    for row in range(9):
-        for col in range(8):
-            for k in range(col + 1, 9):
-                constraint1 = (row, col, row, k)
-                constraint2 = (row, k, row, col)
-                queue.append(constraint1)
-                queue.append(constraint2)
-                if (row, k) not in neighbours[(row, col)]:
-                    neighbours[(row, col)].append((row, k))
-                if (row, col) not in neighbours[(row, k)]:
-                    neighbours[(row, k)].append((row, col))
+    # esta função verifica se há alguma restrição horizontal
+    for linha in range(9):
+        for coluna in range(8):
+            for k in range(coluna + 1, 9):
+                restricao1 = (linha, coluna, linha, k)
+                restricao2 = (linha, k, linha, coluna)
+                queue.append(restricao1)
+                queue.append(restricao2)
+                if (linha, k) not in neighbours[(linha, coluna)]:
+                    neighbours[(linha, coluna)].append((linha, k))
+                if (linha, coluna) not in neighbours[(linha, k)]:
+                    neighbours[(linha, k)].append((linha, coluna))
 
-    # all vertical
-    for col in range(9):
-        for row in range(8):
-            for k in range(row + 1, 9):
-                constraint1 = (row, col, k, col)
-                constraint2 = (k, col, row, col)
-                queue.append(constraint1)
-                queue.append(constraint2)
-                if (k, col) not in neighbours[(row, col)]:
-                    neighbours[(row, col)].append((k, col))
-                if (row, col) not in neighbours[(k, col)]:
-                    neighbours[(k, col)].append((row, col))
-    # all box
-    for row in range(3):
-        for col in range(3):
-            for row2 in range(3):
-                for col2 in range(3):
-                    if row != row2 and col != col2:
-                        constraint1 = (row, col, row2, col2)
-                        constraint2 = (row2, col2, row, col)
-                        # if constraint1 not in queue and constraint2 not in queue:
+    # e verifica se há alguma restrições a nível vertical
+    for coluna in range(9):
+        for linha in range(8):
+            for k in range(linha + 1, 9):
+                restricao1 = (linha, coluna, k, coluna)
+                restricao2 = (k, coluna, linha, coluna)
+                queue.append(restricao1)
+                queue.append(restricao2)
+                if (k, coluna) not in neighbours[(linha, coluna)]:
+                    neighbours[(linha, coluna)].append((k, coluna))
+                if (linha, coluna) not in neighbours[(k, coluna)]:
+                    neighbours[(k, coluna)].append((linha, coluna))
+    # e por ultimo verifica nas regiões
+    for linha in range(3):
+        for coluna in range(3):
+            for linha2 in range(3):
+                for coluna2 in range(3):
+                    if linha != linha2 and coluna != coluna2:
+                        restricao1 = (linha, coluna, linha2, coluna2)
+                        restricao2 = (linha2, coluna2, linha, coluna)
+                        # se passou pelas duas de cima e nao passou por esta, vai entrar na fila agora
+                        # ou entao se nao houver restricao, entao ta feito
                         for i in range(3):
                             for j in range(3):
-                                r1 = row + 3 * i
-                                c1 = col + 3 * j
-                                r2 = row2 + 3 * i
-                                c2 = col2 + 3 * j
+                                r1 = linha + 3 * i
+                                c1 = coluna + 3 * j
+                                r2 = linha2 + 3 * i
+                                c2 = coluna2 + 3 * j
                                 t = (r1, c1, r2, c2)
                                 queue.append(t)
                                 queue.append((r2, c2, r1, c1))
@@ -94,6 +104,7 @@ def initializeQueue():
     return queue
 
 
+# o incrivel ac3 em toda a sua gloria
 def AC3(queue):
     while queue:
         t = queue.pop(0)
@@ -109,17 +120,20 @@ def AC3(queue):
 
 def revise(t):
     i1, j1, i2, j2 = t
-    domain1 = domains[i1][j1]
-    domain2 = domains[i2][j2]
-    for num in domain1:
-        if len(domain2 - {num}) == 0:
-            domains[i1][j1].remove(num)  # revises domain
+    regiao1 = regioes[i1][j1]
+    regiao2 = regioes[i2][j2]
+    for num in regiao1:
+        if len(regiao2 - {num}) == 0:
+            regioes[i1][j1].remove(num)  # revises regiao
             return True
     return False
 
 
+# esta funcao só está aqui para organizarmos o processo
+# ela sinceramente podia nem existir e isto estar tudo no main
+# whatever, assim é mais facil depois se quisermos expandir isto por hobby
 def solve(board):
-    printBoard(board)
+    # printBoard(board) # retorna o sudoku ainda por fazer, é so uma picuisse para testar se estava a ler bem
     initializeNeighbours()
     queue = initializeQueue()
     AC3(queue)
@@ -127,6 +141,8 @@ def solve(board):
     printBoard(board)
 
 
+# main
+# retorna o sudoku já feito imprimido numa formatacao legivel por humanos
 if __name__ == "__main__":
     readFile("input.txt")
     solve(board)
