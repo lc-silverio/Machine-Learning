@@ -48,7 +48,7 @@ def train(filename: str, c):
 
     for j in p: # por cada elemento do p, ou seja mail
         j[0] /= spam_words # https://i.imgur.com/CbkxDB3.png esta parte do pseudocodigo
-        j[1] /= ham_words
+        j[1] /= ham_words # transforma frequencias absolutas em frequencias relativas
 
     return b
 
